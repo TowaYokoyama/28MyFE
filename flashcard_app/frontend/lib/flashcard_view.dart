@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'models.dart' as model;
 import 'api_service.dart';
+import 'package:flip_card/flip_card.dart';
 
 class FlashcardView extends StatefulWidget {
   final List<model.Card> cards;
@@ -14,22 +15,17 @@ class FlashcardView extends StatefulWidget {
 class _FlashcardViewState extends State<FlashcardView> {
   final ApiService apiService = ApiService();
   int currentIndex = 0;
-  bool isFront = true;
+  GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
 
   void _nextCard() {
     setState(() {
       if (currentIndex < widget.cards.length - 1) {
         currentIndex++;
-        isFront = true;
+        cardKey = GlobalKey<FlipCardState>(); // Reset key to force rebuild and show front
       } else {
+        // End of deck
         Navigator.pop(context);
       }
-    });
-  }
-
-  void _flipCard() {
-    setState(() {
-      isFront = !isFront;
     });
   }
 
@@ -47,8 +43,8 @@ class _FlashcardViewState extends State<FlashcardView> {
   Widget build(BuildContext context) {
     if (widget.cards.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Study')),
-        body: const Center(child: Text('No cards to study.')),
+        appBar: AppBar(title: const Text('学習')),
+        body: const Center(child: Text('学習するカードがありません。')),
       );
     }
 
@@ -56,44 +52,74 @@ class _FlashcardViewState extends State<FlashcardView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Study'),
+        title: const Text('学習'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            GestureDetector(
-              onTap: _flipCard,
-              child: Card(
+            FlipCard(
+              key: cardKey,
+              direction: FlipDirection.HORIZONTAL,
+              front: Card(
+                elevation: 2.0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
                 child: SizedBox(
                   width: 300,
                   height: 200,
                   child: Center(
-                    child: Text(
-                      isFront ? card.front : card.back,
-                      style: Theme.of(context).textTheme.headlineMedium,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        card.front,
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              back: Card(
+                elevation: 2.0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+                child: SizedBox(
+                  width: 300,
+                  height: 200,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        card.back,
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 20),
-            if (!isFront)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => _updateMasteryAndGoToNext(0),
-                    child: const Text('Incorrect'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                                  ElevatedButton(
+                    onPressed: () {
+                      cardKey.currentState?.toggleCard(); // Flip back to front if needed
+                      _updateMasteryAndGoToNext(0);
+                    },
+                    child: const Text('不正解'),
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
                   ),
                   ElevatedButton(
-                    onPressed: () => _updateMasteryAndGoToNext(1),
-                    child: const Text('Correct'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    onPressed: () {
+                      cardKey.currentState?.toggleCard(); // Flip back to front if needed
+                      _updateMasteryAndGoToNext(1);
+                    },
+                    child: const Text('正解'),
+                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary),
                   ),
-                ],
-              )
+              ],
+            )
           ],
         ),
       ),

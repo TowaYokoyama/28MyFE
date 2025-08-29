@@ -73,7 +73,7 @@ def on_startup():
     create_db_and_tables()
 
 # API Endpoints
-@app.post("/decks", response_model=DeckRead)
+@app.post("/decks", response_model=DeckReadWithCards)
 def create_deck(deck: DeckCreate, session: Session = Depends(get_session)):
     db_deck = Deck.from_orm(deck)
     session.add(db_deck)
@@ -117,6 +117,27 @@ def update_card(card_id: int, card: CardUpdate, session: Session = Depends(get_s
     session.commit()
     session.refresh(db_card)
     return db_card
+
+@app.delete("/decks/{deck_id}")
+def delete_deck(deck_id: int, session: Session = Depends(get_session)):
+    deck = session.get(Deck, deck_id)
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    # Delete associated cards first
+    for card in deck.cards:
+        session.delete(card)
+    session.delete(deck)
+    session.commit()
+    return {"ok": True}
+
+@app.delete("/cards/{card_id}")
+def delete_card(card_id: int, session: Session = Depends(get_session)):
+    card = session.get(Card, card_id)
+    if not card:
+        raise HTTPException(status_code=404, detail="Card not found")
+    session.delete(card)
+    session.commit()
+    return {"ok": True}
 
 @app.get("/")
 def read_root():

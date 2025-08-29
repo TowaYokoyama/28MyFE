@@ -72,4 +72,18 @@ class ApiService {
       throw Exception('Failed to update card');
     }
   }
+
+  Future<void> deleteDeck(int deckId) async {
+    final response = await http.delete(Uri.parse('$baseUrl/decks/$deckId'));
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete deck');
+    }
+  }
+
+  Future<void> deleteCard(int cardId) async {
+    final response = await http.delete(Uri.parse('$baseUrl/cards/$cardId'));
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete card');
+    }
+  }
 }
