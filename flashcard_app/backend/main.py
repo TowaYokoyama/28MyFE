@@ -1,4 +1,5 @@
 from typing import List, Optional
+from datetime import date
 
 from fastapi import Depends, FastAPI, HTTPException
 from sqlmodel import Field, Relationship, Session, SQLModel, create_engine, select
@@ -16,6 +17,12 @@ class Card(SQLModel, table=True):
     mastery_level: int = Field(default=0)
     deck_id: Optional[int] = Field(default=None, foreign_key="deck.id")
     deck: Optional[Deck] = Relationship(back_populates="cards")
+
+class StudyLog(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    date: date
+    card_id: Optional[int] = Field(default=None, foreign_key="card.id")
+    deck_id: Optional[int] = Field(default=None, foreign_key="deck.id")
 
 # API Models (Data Transfer Objects)
 class CardRead(SQLModel):
@@ -138,6 +145,39 @@ def delete_card(card_id: int, session: Session = Depends(get_session)):
     session.delete(card)
     session.commit()
     return {"ok": True}
+
+class StudyLogCreate(SQLModel):
+    date: date
+    card_id: Optional[int] = None
+    deck_id: Optional[int] = None
+
+class StudyLogRead(SQLModel):
+    id: int
+    date: date
+    card_id: Optional[int] = None
+    deck_id: Optional[int] = None
+
+@app.post("/study_logs", response_model=StudyLogRead)
+def create_study_log(study_log: StudyLogCreate, session: Session = Depends(get_session)):
+    db_study_log = StudyLog.from_orm(study_log)
+    session.add(db_study_log)
+    session.commit()
+    session.refresh(db_study_log)
+    return db_study_log
+
+@app.get("/study_logs", response_model=List[StudyLogRead])
+def read_study_logs(
+    session: Session = Depends(get_session),
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+):
+    query = select(StudyLog)
+    if start_date:
+        query = query.where(StudyLog.date >= start_date)
+    if end_date:
+        query = query.where(StudyLog.date <= end_date)
+    study_logs = session.exec(query).all()
+    return study_logs
 
 @app.get("/")
 def read_root():

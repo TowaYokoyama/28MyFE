@@ -42,3 +42,26 @@ class Deck {
     );
   }
 }
+
+class StudyLog {
+  final int id;
+  final DateTime date;
+  final int? cardId;
+  final int? deckId;
+
+  StudyLog({
+    required this.id,
+    required this.date,
+    this.cardId,
+    this.deckId,
+  });
+
+  factory StudyLog.fromJson(Map<String, dynamic> json) {
+    return StudyLog(
+      id: json['id'],
+      date: DateTime.parse(json['date']),
+      cardId: json['card_id'],
+      deckId: json['deck_id'],
+    );
+  }
+}

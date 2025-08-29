@@ -115,7 +115,7 @@ class _CardListScreenState extends State<CardListScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => FlashcardView(cards: cards),
+                  builder: (context) => FlashcardView(cards: cards, deckId: widget.deck.id),
                 ),
               );
             },

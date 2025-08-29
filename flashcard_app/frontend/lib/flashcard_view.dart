@@ -5,8 +5,9 @@ import 'package:flip_card/flip_card.dart';
 
 class FlashcardView extends StatefulWidget {
   final List<model.Card> cards;
+  final int? deckId;
 
-  const FlashcardView({super.key, required this.cards});
+  const FlashcardView({super.key, required this.cards, this.deckId});
 
   @override
   State<FlashcardView> createState() => _FlashcardViewState();
@@ -35,6 +36,8 @@ class _FlashcardViewState extends State<FlashcardView> {
       setState(() {
         widget.cards[currentIndex] = updatedCard;
       });
+      // Record study log
+      apiService.createStudyLog(DateTime.now(), cardId: card.id, deckId: widget.deckId);
       _nextCard();
     });
   }

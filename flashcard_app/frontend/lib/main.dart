@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'api_service.dart';
 import 'models.dart' as model;
 import 'card_list_screen.dart';
+import 'study_calendar_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 void main() {
@@ -17,39 +18,39 @@ class MyApp extends StatelessWidget {
       title: 'フラッシュカードアプリ',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blueGrey,
+          seedColor: Colors.blue,
           brightness: Brightness.dark,
-        ),
+        ).copyWith(error: Colors.red),
         useMaterial3: true,
         textTheme: GoogleFonts.notoSansJpTextTheme(Theme.of(context).textTheme).apply(
           bodyColor: Colors.white,
           displayColor: Colors.white,
         ),
-        scaffoldBackgroundColor: Colors.grey[900],
+        scaffoldBackgroundColor: Colors.black,
         appBarTheme: AppBarTheme(
-          backgroundColor: Colors.grey[900],
+          backgroundColor: Colors.black,
           foregroundColor: Colors.white,
           elevation: 0,
         ),
         cardTheme: CardThemeData(
-          color: Colors.grey[800],
+          color: Colors.grey[850],
           elevation: 4.0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
           shadowColor: Colors.black,
         ),
         floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: Colors.blueGrey[700],
+          backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             foregroundColor: Colors.white,
-            backgroundColor: Colors.blueGrey[700],
+            backgroundColor: Colors.blue,
           ),
         ),
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
-            foregroundColor: Colors.blueGrey[200],
+            foregroundColor: Colors.blue,
           ),
         ),
       ),
@@ -150,6 +151,19 @@ class _DeckListScreenState extends State<DeckListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('デッキ一覧'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_today),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StudyCalendarScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<model.Deck>>(
         future: futureDecks,
