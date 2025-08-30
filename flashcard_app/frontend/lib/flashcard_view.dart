@@ -64,66 +64,61 @@ class _FlashcardViewState extends State<FlashcardView> {
             FlipCard(
               key: cardKey,
               direction: FlipDirection.HORIZONTAL,
-              front: Card(
-                elevation: 2.0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
-                child: SizedBox(
-                  width: 300,
-                  height: 200,
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        card.front,
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              back: Card(
-                elevation: 2.0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
-                child: SizedBox(
-                  width: 300,
-                  height: 200,
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        card.back,
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              front: _buildCardFace(card.front, context),
+              back: _buildCardFace(card.back, context),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 40),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                                  ElevatedButton(
-                    onPressed: () {
-                      cardKey.currentState?.toggleCard(); // Flip back to front if needed
-                      _updateMasteryAndGoToNext(0);
-                    },
-                    child: const Text('不正解'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+                ElevatedButton(
+                  onPressed: () {
+                    cardKey.currentState?.toggleCard();
+                    _updateMasteryAndGoToNext(0);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      cardKey.currentState?.toggleCard(); // Flip back to front if needed
-                      _updateMasteryAndGoToNext(1);
-                    },
-                    child: const Text('正解'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary),
+                  child: const Text('不正解', style: TextStyle(fontSize: 18)),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    cardKey.currentState?.toggleCard();
+                    _updateMasteryAndGoToNext(1);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
                   ),
+                  child: const Text('正解', style: TextStyle(fontSize: 18)),
+                ),
               ],
             )
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCardFace(String text, BuildContext context) {
+    return Card(
+      elevation: 4.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.0)),
+      child: SizedBox(
+        width: 320,
+        height: 220,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          ),
         ),
       ),
     );

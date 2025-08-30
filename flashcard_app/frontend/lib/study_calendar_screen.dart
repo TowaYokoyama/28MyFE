@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'models.dart' as model; // Added comment to force re-evaluation
+import 'models.dart' as model;
 import 'api_service.dart';
 
 class StudyCalendarScreen extends StatefulWidget {
@@ -27,18 +27,18 @@ class _StudyCalendarScreenState extends State<StudyCalendarScreen> {
   Future<void> _fetchStudyLogs() async {
     try {
       final logs = await apiService.getStudyLogs();
-      setState(() {
-        _events = {}; // Clear previous events
-        for (var log in logs) {
-          final date = DateTime.utc(log.date.year, log.date.month, log.date.day);
-          if (_events[date] == null) {
-            _events[date] = [];
-          }
-          _events[date]!.add(log);
+      final events = <DateTime, List<model.StudyLog>>{};
+      for (var log in logs) {
+        final date = DateTime.utc(log.date.year, log.date.month, log.date.day);
+        if (events[date] == null) {
+          events[date] = [];
         }
+        events[date]!.add(log);
+      }
+      setState(() {
+        _events = events;
       });
     } catch (e) {
-      // Handle error
       print('Error fetching study logs: $e');
     }
   }
@@ -60,9 +60,8 @@ class _StudyCalendarScreenState extends State<StudyCalendarScreen> {
             lastDay: DateTime.utc(2030, 12, 31),
             focusedDay: _focusedDay,
             calendarFormat: _calendarFormat,
-            selectedDayPredicate: (day) {
-              return isSameDay(_selectedDay, day);
-            },
+            locale: 'ja_JP',
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             onDaySelected: (selectedDay, focusedDay) {
               if (!isSameDay(_selectedDay, selectedDay)) {
                 setState(() {
@@ -80,19 +79,25 @@ class _StudyCalendarScreenState extends State<StudyCalendarScreen> {
             },
             onPageChanged: (focusedDay) {
               _focusedDay = focusedDay;
-              _fetchStudyLogs(); // Fetch logs for the new month/year
+              _fetchStudyLogs();
             },
             eventLoader: _getEventsForDay,
             calendarBuilders: CalendarBuilders(
-              markerBuilder: (context, date, events) {
+              defaultBuilder: (context, day, focusedDay) {
+                final events = _getEventsForDay(day);
                 if (events.isNotEmpty) {
-                  return Positioned(
-                    right: 1,
-                    bottom: 1,
-                    child: Text(
-                      '💮',
-                      style: TextStyle(fontSize: 16.0),
-                    ),
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Text(
+                        '💮',
+                        style: TextStyle(fontSize: 40.0, color: Colors.amber.withOpacity(0.5)),
+                      ),
+                      Text(
+                        '${day.day}',
+                        style: const TextStyle(color: Colors.black87),
+                      ),
+                    ],
                   );
                 }
                 return null;
@@ -105,26 +110,36 @@ class _StudyCalendarScreenState extends State<StudyCalendarScreen> {
             ),
             calendarStyle: CalendarStyle(
               todayDecoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                color: Theme.of(context).colorScheme.secondary.withOpacity(0.5),
                 shape: BoxShape.circle,
               ),
               selectedDecoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primary,
                 shape: BoxShape.circle,
               ),
-              defaultTextStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-              weekendTextStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
-              outsideTextStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4)),
+              defaultTextStyle: const TextStyle(color: Colors.black87),
+              weekendTextStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+              outsideTextStyle: const TextStyle(color: Colors.grey),
             ),
           ),
           const SizedBox(height: 8.0),
           Expanded(
-            child: ListView.builder(
-              itemCount: _getEventsForDay(_selectedDay!).length,
-              itemBuilder: (context, index) {
-                final log = _getEventsForDay(_selectedDay!)[index];
-                return ListTile(
-                  title: Text('学習ログ: ${log.date}'), // More detailed log display
+            child: ValueListenableBuilder<DateTime>(
+              valueListenable: ValueNotifier(_selectedDay!),
+              builder: (context, value, child) {
+                final events = _getEventsForDay(value);
+                return ListView.builder(
+                  itemCount: events.length,
+                  itemBuilder: (context, index) {
+                    final log = events[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                      child: ListTile(
+                        title: Text('学習記録: カードID ${log.cardId}'),
+                        subtitle: Text('日時: ${log.date.toLocal()}'),
+                      ),
+                    );
+                  },
                 );
               },
             ),

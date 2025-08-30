@@ -110,7 +110,8 @@ class _CardListScreenState extends State<CardListScreen> {
         title: Text(widget.deck.name),
         actions: [
           IconButton(
-            icon: const Icon(Icons.school),
+            icon: const Icon(Icons.school_outlined),
+            tooltip: '学習を開始',
             onPressed: () {
               Navigator.push(
                 context,
@@ -123,14 +124,12 @@ class _CardListScreenState extends State<CardListScreen> {
         ],
       ),
       body: ListView.builder(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(16.0),
         itemCount: cards.length,
         itemBuilder: (context, index) {
           final card = cards[index];
           return Card(
             margin: const EdgeInsets.symmetric(vertical: 8.0),
-            elevation: 2.0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -148,10 +147,9 @@ class _CardListScreenState extends State<CardListScreen> {
                   Align(
                     alignment: Alignment.bottomRight,
                     child: IconButton(
-                      icon: Icon(Icons.delete, color: Colors.grey[600]),
-                      onPressed: () {
-                        _deleteCard(card.id);
-                      },
+                      icon: Icon(Icons.delete_outline, color: Colors.grey[400]),
+                      onPressed: () => _deleteCard(card.id),
+                      tooltip: 'カードを削除',
                     ),
                   ),
                 ],

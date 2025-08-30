@@ -14,43 +14,62 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = GoogleFonts.notoSansJpTextTheme(Theme.of(context).textTheme);
+
     return MaterialApp(
       title: 'フラッシュカードアプリ',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.dark,
-        ).copyWith(error: Colors.red),
         useMaterial3: true,
-        textTheme: GoogleFonts.notoSansJpTextTheme(Theme.of(context).textTheme).apply(
-          bodyColor: Colors.white,
-          displayColor: Colors.white,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF00BCD4), // Vibrant Cyan
+          brightness: Brightness.light,
+          primary: const Color(0xFF00BCD4),
+          secondary: const Color(0xFFFFC107), // Amber
+          error: const Color(0xFFF44336), // Red
         ),
-        scaffoldBackgroundColor: Colors.black,
+        textTheme: textTheme.apply(
+          bodyColor: Colors.black87,
+          displayColor: Colors.black87,
+        ),
+        scaffoldBackgroundColor: Colors.white,
         appBarTheme: AppBarTheme(
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-          elevation: 0,
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black87,
+          elevation: 1,
+          titleTextStyle: textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
         ),
         cardTheme: CardThemeData(
-          color: Colors.grey[850],
-          elevation: 4.0,
+          color: Colors.white,
+          elevation: 2.0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
-          shadowColor: Colors.black,
+          shadowColor: Colors.grey.withOpacity(0.2),
         ),
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: Colors.blue,
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: Color(0xFF00BCD4),
           foregroundColor: Colors.white,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             foregroundColor: Colors.white,
-            backgroundColor: Colors.blue,
+            backgroundColor: const Color(0xFF00BCD4),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
         ),
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
-            foregroundColor: Colors.blue,
+            foregroundColor: const Color(0xFF00BCD4),
+          ),
+        ),
+        dialogTheme: DialogThemeData(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
           ),
         ),
       ),
@@ -176,57 +195,27 @@ class _DeckListScreenState extends State<DeckListScreen> {
             return const Center(child: Text('デッキがありません。「+」ボタンで追加してください。'));
           } else {
             return GridView.builder(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(24.0),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, // 2 columns
-                crossAxisSpacing: 16.0,
-                mainAxisSpacing: 16.0,
-                childAspectRatio: 1.0, // Adjusted aspect ratio for more square cards
+                crossAxisCount: 3,
+                crossAxisSpacing: 20.0,
+                mainAxisSpacing: 20.0,
+                childAspectRatio: 0.9,
               ),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
                 final deck = snapshot.data![index];
-                return Card(
-                  elevation: 2.0, // Softer shadow
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)), // More rounded corners
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CardListScreen(deck: deck),
-                        ),
-                      ).then((_) => _refreshDecks());
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Center(
-                              child: Text(
-                                deck.name,
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                                textAlign: TextAlign.center,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 2,
-                              ),
-                            ),
-                          ),
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: IconButton(
-                              icon: Icon(Icons.delete, color: Colors.grey[600]),
-                              onPressed: () {
-                                _deleteDeck(deck.id);
-                              },
-                            ),
-                          ),
-                        ],
+                return DeckCard(
+                  deck: deck,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CardListScreen(deck: deck),
                       ),
-                    ),
-                  ),
+                    ).then((_) => _refreshDecks());
+                  },
+                  onDelete: () => _deleteDeck(deck.id),
                 );
               },
             );
@@ -236,6 +225,94 @@ class _DeckListScreenState extends State<DeckListScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddDeckDialog,
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class DeckCard extends StatefulWidget {
+  final model.Deck deck;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  const DeckCard({
+    super.key,
+    required this.deck,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  @override
+  State<DeckCard> createState() => _DeckCardState();
+}
+
+class _DeckCardState extends State<DeckCard> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: InkWell(
+        onTap: widget.onTap,
+        onFocusChange: (isFocused) => setState(() => _isHovered = isFocused),
+        borderRadius: BorderRadius.circular(16.0),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16.0),
+            boxShadow: _isHovered
+                ? [
+                    BoxShadow(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
+                      blurRadius: 12.0,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      blurRadius: 8.0,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      widget.deck.name,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0, right: 4.0),
+                child: Align(
+                  alignment: Alignment.bottomRight,
+                  child: IconButton(
+                    icon: Icon(Icons.delete_outline, color: Colors.grey[400]),
+                    onPressed: widget.onDelete,
+                    tooltip: 'デッキを削除',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
