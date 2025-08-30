@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'models.dart' as model;
 import 'api_service.dart';
@@ -125,11 +126,13 @@ class _StudyCalendarScreenState extends State<StudyCalendarScreen> {
                   itemCount: events.length,
                   itemBuilder: (context, index) {
                     final log = events[index];
+                    final time = DateFormat('HH:mm').format(log.date.toLocal());
                     return Card(
                       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
                       child: ListTile(
-                        title: Text('学習記録: カードID ${log.cardId}'),
-                        subtitle: Text('日時: ${log.date.toLocal()}'),
+                        leading: const Icon(Icons.check_circle_outline, color: Colors.green),
+                        title: const Text('1枚学習しました'),
+                        trailing: Text('$time'),
                       ),
                     );
                   },
