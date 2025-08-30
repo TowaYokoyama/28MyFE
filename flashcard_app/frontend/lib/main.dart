@@ -4,8 +4,11 @@ import 'models.dart' as model;
 import 'card_list_screen.dart';
 import 'study_calendar_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('ja_JP');
   runApp(const MyApp());
 }
 

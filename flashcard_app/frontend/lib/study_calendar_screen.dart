@@ -83,21 +83,13 @@ class _StudyCalendarScreenState extends State<StudyCalendarScreen> {
             },
             eventLoader: _getEventsForDay,
             calendarBuilders: CalendarBuilders(
-              defaultBuilder: (context, day, focusedDay) {
-                final events = _getEventsForDay(day);
+              markerBuilder: (context, date, events) {
                 if (events.isNotEmpty) {
-                  return Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Text(
-                        '💮',
-                        style: TextStyle(fontSize: 40.0, color: Colors.amber.withOpacity(0.5)),
-                      ),
-                      Text(
-                        '${day.day}',
-                        style: const TextStyle(color: Colors.black87),
-                      ),
-                    ],
+                  return Center(
+                    child: Text(
+                      '💮',
+                      style: TextStyle(fontSize: 40.0, color: Colors.amber.withOpacity(0.5)),
+                    ),
                   );
                 }
                 return null;
@@ -120,6 +112,7 @@ class _StudyCalendarScreenState extends State<StudyCalendarScreen> {
               defaultTextStyle: const TextStyle(color: Colors.black87),
               weekendTextStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
               outsideTextStyle: const TextStyle(color: Colors.grey),
+              markersAlignment: Alignment.center,
             ),
           ),
           const SizedBox(height: 8.0),
