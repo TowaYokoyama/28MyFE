@@ -5,8 +5,18 @@ import 'models.dart' as model;
 class ApiService {
   final String baseUrl = "http://127.0.0.1:8000";
 
-  Future<List<model.Deck>> getDecks() async {
-    final response = await http.get(Uri.parse('$baseUrl/decks'));
+  Map<String, String> _getHeaders(String? token) {
+    return {
+      'Content-Type': 'application/json; charset=UTF-8',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  Future<List<model.Deck>> getDecks(String token) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/decks'),
+      headers: _getHeaders(token),
+    );
 
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
@@ -17,15 +27,11 @@ class ApiService {
     }
   }
 
-  Future<model.Deck> createDeck(String name) async {
+  Future<model.Deck> createDeck(String name, String token) async {
     final response = await http.post(
       Uri.parse('$baseUrl/decks'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'name': name,
-      }),
+      headers: _getHeaders(token),
+      body: jsonEncode(<String, String>{'name': name}),
     );
 
     if (response.statusCode == 200) {
@@ -35,12 +41,10 @@ class ApiService {
     }
   }
 
-  Future<model.Card> createCard(String front, String back, int deckId) async {
+  Future<model.Card> createCard(String front, String back, int deckId, String token) async {
     final response = await http.post(
       Uri.parse('$baseUrl/cards'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
+      headers: _getHeaders(token),
       body: jsonEncode(<String, dynamic>{
         'front': front,
         'back': back,
@@ -55,15 +59,11 @@ class ApiService {
     }
   }
 
-  Future<model.Card> updateCardMastery(int cardId, int masteryLevel) async {
+  Future<model.Card> updateCardMastery(int cardId, int masteryLevel, String token) async {
     final response = await http.patch(
       Uri.parse('$baseUrl/cards/$cardId'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, dynamic>{
-        'mastery_level': masteryLevel,
-      }),
+      headers: _getHeaders(token),
+      body: jsonEncode(<String, dynamic>{'mastery_level': masteryLevel}),
     );
 
     if (response.statusCode == 200) {
@@ -73,20 +73,27 @@ class ApiService {
     }
   }
 
-  Future<void> deleteDeck(int deckId) async {
-    final response = await http.delete(Uri.parse('$baseUrl/decks/$deckId'));
+  Future<void> deleteDeck(int deckId, String token) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/decks/$deckId'),
+      headers: _getHeaders(token),
+    );
     if (response.statusCode != 200) {
       throw Exception('Failed to delete deck');
     }
   }
 
-  Future<void> deleteCard(int cardId) async {
-    final response = await http.delete(Uri.parse('$baseUrl/cards/$cardId'));
+  Future<void> deleteCard(int cardId, String token) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/cards/$cardId'),
+      headers: _getHeaders(token),
+    );
     if (response.statusCode != 200) {
       throw Exception('Failed to delete card');
     }
   }
 
+  // Study logs are not protected for now
   Future<List<model.StudyLog>> getStudyLogs({DateTime? startDate, DateTime? endDate}) async {
     String url = '$baseUrl/study_logs';
     final Map<String, String> queryParams = {};

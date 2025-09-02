@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'models.dart' as model;
 import 'api_service.dart';
+import 'auth_service.dart';
 import 'flashcard_view.dart';
 
 class CardListScreen extends StatefulWidget {
@@ -23,6 +25,9 @@ class _CardListScreenState extends State<CardListScreen> {
   }
 
   void _showAddCardDialog() {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    if (authService.token == null) return;
+
     final TextEditingController frontController = TextEditingController();
     final TextEditingController backController = TextEditingController();
 
@@ -56,7 +61,7 @@ class _CardListScreenState extends State<CardListScreen> {
               onPressed: () {
                 if (frontController.text.isNotEmpty && backController.text.isNotEmpty) {
                   apiService
-                      .createCard(frontController.text, backController.text, widget.deck.id)
+                      .createCard(frontController.text, backController.text, widget.deck.id, authService.token!)
                       .then((newCard) {
                     setState(() {
                       cards.add(newCard);
@@ -73,6 +78,9 @@ class _CardListScreenState extends State<CardListScreen> {
   }
 
   void _deleteCard(int cardId) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    if (authService.token == null) return;
+
     showDialog(
       context: context,
       builder: (context) {
@@ -87,9 +95,9 @@ class _CardListScreenState extends State<CardListScreen> {
               },
             ),
             TextButton(
-              child: const Text('削除'),
+              child: Text('削除', style: TextStyle(color: Theme.of(context).colorScheme.error)),
               onPressed: () {
-                apiService.deleteCard(cardId).then((_) {
+                apiService.deleteCard(cardId, authService.token!).then((_) {
                   setState(() {
                     cards.removeWhere((card) => card.id == cardId);
                   });

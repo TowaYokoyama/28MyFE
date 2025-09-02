@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:collection/collection.dart';
+import 'package:provider/provider.dart';
+import 'auth_service.dart';
 import 'api_service.dart';
 import 'models.dart' as model;
 import 'flashcard_view.dart';
@@ -88,8 +89,13 @@ class _StudyOptionsScreenState extends State<StudyOptionsScreen> {
   }
 
   Widget _buildDeckSelection() {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    if (authService.token == null) {
+      return const Center(child: Text('ログインしてください。'));
+    }
+
     return FutureBuilder<List<model.Deck>>(
-      future: apiService.getDecks(),
+      future: apiService.getDecks(authService.token!),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());

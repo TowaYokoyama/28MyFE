@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'models.dart' as model;
 import 'api_service.dart';
+import 'auth_service.dart';
 import 'package:flip_card/flip_card.dart';
 
 class FlashcardView extends StatefulWidget {
@@ -19,20 +21,22 @@ class _FlashcardViewState extends State<FlashcardView> {
   GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
 
   void _nextCard() {
-    setState(() {
-      if (currentIndex < widget.cards.length - 1) {
+    if (currentIndex < widget.cards.length - 1) {
+      setState(() {
         currentIndex++;
-        cardKey = GlobalKey<FlipCardState>(); // Reset key to force rebuild and show front
-      } else {
-        // End of deck
-        Navigator.pop(context);
-      }
-    });
+        cardKey = GlobalKey<FlipCardState>();
+      });
+    } else {
+      Navigator.pop(context);
+    }
   }
 
   void _updateMasteryAndGoToNext(int masteryLevel) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    if (authService.token == null) return;
+
     final card = widget.cards[currentIndex];
-    apiService.updateCardMastery(card.id, masteryLevel).then((updatedCard) {
+    apiService.updateCardMastery(card.id, masteryLevel, authService.token!).then((updatedCard) {
       setState(() {
         widget.cards[currentIndex] = updatedCard;
       });
@@ -61,11 +65,14 @@ class _FlashcardViewState extends State<FlashcardView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            FlipCard(
-              key: cardKey,
-              direction: FlipDirection.HORIZONTAL,
-              front: _buildCardFace(card.front, context),
-              back: _buildCardFace(card.back, context),
+            MouseRegion(
+              onEnter: (_) => cardKey.currentState?.toggleCard(),
+              child: FlipCard(
+                key: cardKey,
+                direction: FlipDirection.HORIZONTAL,
+                front: _buildCardFace(card.front, context),
+                back: _buildCardFace(card.back, context),
+              ),
             ),
             const SizedBox(height: 40),
             Row(
@@ -73,7 +80,6 @@ class _FlashcardViewState extends State<FlashcardView> {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    cardKey.currentState?.toggleCard();
                     _updateMasteryAndGoToNext(0);
                   },
                   style: ElevatedButton.styleFrom(
@@ -84,7 +90,6 @@ class _FlashcardViewState extends State<FlashcardView> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    cardKey.currentState?.toggleCard();
                     _updateMasteryAndGoToNext(1);
                   },
                   style: ElevatedButton.styleFrom(
