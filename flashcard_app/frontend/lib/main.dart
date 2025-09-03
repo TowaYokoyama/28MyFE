@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'app_shell.dart';
 import 'auth_screen.dart';
 import 'auth_service.dart';
+import 'api_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,8 +18,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => AuthService(),
+    return MultiProvider( // Use MultiProvider for multiple providers
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => AuthService(),
+        ),
+        Provider<ApiService>( // Provide ApiService
+          create: (context) => ApiService(
+            Provider.of<AuthService>(context, listen: false), // Pass AuthService
+          ),
+        ),
+      ],
       child: MaterialApp(
         title: 'フラッシュカードアプリ',
         theme: _buildTheme(context),

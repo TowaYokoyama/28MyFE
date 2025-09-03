@@ -1,9 +1,24 @@
+class Tag {
+  final int id;
+  final String name;
+
+  Tag({required this.id, required this.name});
+
+  factory Tag.fromJson(Map<String, dynamic> json) {
+    return Tag(
+      id: json['id'],
+      name: json['name'],
+    );
+  }
+}
+
 class Card {
   final int id;
   final String front;
   final String back;
   final int masteryLevel;
   final int deckId;
+  final List<Tag> tags;
 
   Card({
     required this.id,
@@ -11,15 +26,20 @@ class Card {
     required this.back,
     required this.masteryLevel,
     required this.deckId,
+    this.tags = const [],
   });
 
   factory Card.fromJson(Map<String, dynamic> json) {
+    var tagsFromJson = json['tags'] as List? ?? [];
+    List<Tag> tagList = tagsFromJson.map((i) => Tag.fromJson(i)).toList();
+
     return Card(
       id: json['id'],
       front: json['front'],
       back: json['back'],
       masteryLevel: json['mastery_level'],
       deckId: json['deck_id'],
+      tags: tagList,
     );
   }
 }

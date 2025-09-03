@@ -16,9 +16,15 @@ class FlashcardView extends StatefulWidget {
 }
 
 class _FlashcardViewState extends State<FlashcardView> {
-  final ApiService apiService = ApiService();
+  late final ApiService apiService;
   int currentIndex = 0;
   GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
+
+  @override
+  void initState() {
+    super.initState();
+    apiService = Provider.of<ApiService>(context, listen: false);
+  }
 
   void _nextCard() {
     if (currentIndex < widget.cards.length - 1) {
@@ -36,7 +42,7 @@ class _FlashcardViewState extends State<FlashcardView> {
     if (authService.token == null) return;
 
     final card = widget.cards[currentIndex];
-    apiService.updateCardMastery(card.id, masteryLevel, authService.token!).then((updatedCard) {
+    apiService.updateCard(card.id, masteryLevel: masteryLevel).then((updatedCard) {
       setState(() {
         widget.cards[currentIndex] = updatedCard;
       });

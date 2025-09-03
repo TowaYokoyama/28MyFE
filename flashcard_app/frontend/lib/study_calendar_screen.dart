@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'models.dart' as model;
@@ -12,7 +13,7 @@ class StudyCalendarScreen extends StatefulWidget {
 }
 
 class _StudyCalendarScreenState extends State<StudyCalendarScreen> {
-  final ApiService apiService = ApiService();
+  late final ApiService apiService;
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
@@ -21,6 +22,7 @@ class _StudyCalendarScreenState extends State<StudyCalendarScreen> {
   @override
   void initState() {
     super.initState();
+    apiService = Provider.of<ApiService>(context, listen: false);
     _selectedDay = _focusedDay;
     _fetchStudyLogs();
   }

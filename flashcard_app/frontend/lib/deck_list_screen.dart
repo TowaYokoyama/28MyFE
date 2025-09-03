@@ -13,13 +13,13 @@ class DeckListScreen extends StatefulWidget {
 }
 
 class DeckListScreenState extends State<DeckListScreen> {
-  final ApiService apiService = ApiService();
+  late final ApiService apiService;
   Future<List<model.Deck>>? futureDecks;
 
   @override
   void initState() {
     super.initState();
-    // Defer getting the token until the first build when context is available.
+    apiService = Provider.of<ApiService>(context, listen: false);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _refreshDecks();
@@ -39,7 +39,7 @@ class DeckListScreenState extends State<DeckListScreen> {
     }
     if (mounted) {
       setState(() {
-        futureDecks = apiService.getDecks(authService.token!);
+        futureDecks = apiService.getDecks();
       });
     }
   }
@@ -69,7 +69,7 @@ class DeckListScreenState extends State<DeckListScreen> {
               child: const Text('追加'),
               onPressed: () {
                 if (nameController.text.isNotEmpty) {
-                  apiService.createDeck(nameController.text, authService.token!).then((_) {
+                  apiService.createDeck(nameController.text).then((_) {
                     if (!mounted) return;
                     _refreshDecks();
                     Navigator.of(context).pop();
@@ -103,7 +103,7 @@ class DeckListScreenState extends State<DeckListScreen> {
             TextButton(
               child: const Text('削除'),
               onPressed: () {
-                apiService.deleteDeck(deckId, authService.token!).then((_) {
+                apiService.deleteDeck(deckId).then((_) {
                   if (!mounted) return;
                   _refreshDecks();
                   Navigator.of(context).pop();
@@ -250,4 +250,3 @@ class _DeckCardState extends State<DeckCard> {
     );
   }
 }
-

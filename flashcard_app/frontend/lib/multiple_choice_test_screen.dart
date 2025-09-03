@@ -20,6 +20,7 @@ class _MultipleChoiceTestScreenState extends State<MultipleChoiceTestScreen> {
   List<String> _options = [];
   String? _selectedAnswer;
   bool _isAnswered = false;
+  String? _correctAnswer; // Store the correct answer
 
   @override
   void initState() {
@@ -29,7 +30,7 @@ class _MultipleChoiceTestScreenState extends State<MultipleChoiceTestScreen> {
 
   void _generateOptions() {
     final currentCard = widget.cards[_currentIndex];
-    final correctAnswer = currentCard.back;
+    _correctAnswer = currentCard.back; // Set correct answer
 
     final allIncorrectAnswers = widget.deck.cards
         .where((c) => c.id != currentCard.id)
@@ -42,7 +43,7 @@ class _MultipleChoiceTestScreenState extends State<MultipleChoiceTestScreen> {
     final incorrectOptions = allIncorrectAnswers.take(3).toList();
 
     setState(() {
-      _options = [correctAnswer, ...incorrectOptions];
+      _options = [_correctAnswer!, ...incorrectOptions]; // Use _correctAnswer
       _options.shuffle();
       _selectedAnswer = null;
       _isAnswered = false;
@@ -50,19 +51,18 @@ class _MultipleChoiceTestScreenState extends State<MultipleChoiceTestScreen> {
   }
 
   void _handleAnswer(String selectedAnswer) {
+    if (_isAnswered) return; // Prevent multiple answers
+
     setState(() {
       _isAnswered = true;
       _selectedAnswer = selectedAnswer;
     });
 
-    final isCorrect = selectedAnswer == widget.cards[_currentIndex].back;
+    final isCorrect = selectedAnswer == _correctAnswer; // Use _correctAnswer
     if (isCorrect) {
       _score++;
     }
-
-    Future.delayed(const Duration(seconds: 2), () {
-      _nextQuestion();
-    });
+    // Removed Future.delayed - now a "Next" button will appear
   }
 
   void _nextQuestion() {
@@ -100,14 +100,25 @@ class _MultipleChoiceTestScreenState extends State<MultipleChoiceTestScreen> {
     if (!_isAnswered) {
       return Colors.grey.shade200;
     }
-    final isCorrect = option == widget.cards[_currentIndex].back;
-    if (isCorrect) {
+    // Highlight correct answer in green
+    if (option == _correctAnswer) {
       return Colors.green.shade300;
     }
+    // Highlight selected incorrect answer in red
     if (option == _selectedAnswer) {
       return Colors.red.shade300;
     }
     return Colors.grey.shade200;
+  }
+
+  Icon? _getAnswerIcon(String option) {
+    if (!_isAnswered) return null;
+    if (option == _correctAnswer) {
+      return const Icon(Icons.check, color: Colors.green);
+    } else if (option == _selectedAnswer) {
+      return const Icon(Icons.close, color: Colors.red);
+    }
+    return null;
   }
 
   @override
@@ -160,12 +171,30 @@ class _MultipleChoiceTestScreenState extends State<MultipleChoiceTestScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 16.0),
                         textStyle: Theme.of(context).textTheme.titleMedium,
                       ),
-                      child: Text(option),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(child: Text(option)),
+                          if (_getAnswerIcon(option) != null) _getAnswerIcon(option)!,
+                        ],
+                      ),
                     ),
                   );
                 }).toList(),
               ),
             ),
+            if (_isAnswered) // Show Next button only after answering
+              Padding(
+                padding: const EdgeInsets.only(top: 24.0),
+                child: ElevatedButton(
+                  onPressed: _nextQuestion,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    textStyle: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  child: const Text('次へ'),
+                ),
+              ),
           ],
         ),
       ),

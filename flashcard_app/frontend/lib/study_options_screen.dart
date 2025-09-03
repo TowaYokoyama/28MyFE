@@ -18,10 +18,16 @@ class StudyOptionsScreen extends StatefulWidget {
 }
 
 class _StudyOptionsScreenState extends State<StudyOptionsScreen> {
-  final ApiService apiService = ApiService();
+  late final ApiService apiService;
   model.Deck? _selectedDeck;
   StudyMode _studyMode = StudyMode.normal;
   MasteryFilter _masteryFilter = MasteryFilter.all;
+
+  @override
+  void initState() {
+    super.initState();
+    apiService = Provider.of<ApiService>(context, listen: false);
+  }
 
   void _startStudySession() {
     if (_selectedDeck == null) return;
@@ -95,7 +101,7 @@ class _StudyOptionsScreenState extends State<StudyOptionsScreen> {
     }
 
     return FutureBuilder<List<model.Deck>>(
-      future: apiService.getDecks(authService.token!),
+      future: apiService.getDecks(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());

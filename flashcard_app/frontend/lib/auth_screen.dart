@@ -9,37 +9,83 @@ class AuthScreen extends StatefulWidget {
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> {
+class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateMixin {
   bool _isLogin = true;
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   void _toggleForm() {
     setState(() {
       _isLogin = !_isLogin;
     });
+    _controller.forward(from: 0.0); // Replay animation on form switch
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).colorScheme.primary.withOpacity(0.8),
+              Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+            ],
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _isLogin ? 'ログイン' : '新規登録',
-                  style: Theme.of(context).textTheme.headlineLarge,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400), // Limit width
+              child: Card(
+                elevation: 8.0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: FadeTransition( // Animation for the whole form
+                    opacity: _animation,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _isLogin ? 'ログイン' : '新規登録',
+                          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: _isLogin
+                              ? LoginForm(key: const ValueKey('loginForm'), onSwitch: _toggleForm)
+                              : RegisterForm(key: const ValueKey('registerForm'), onSwitch: _toggleForm),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 32),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: _isLogin
-                      ? LoginForm(onSwitch: _toggleForm)
-                      : RegisterForm(onSwitch: _toggleForm),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -91,13 +137,21 @@ class _LoginFormState extends State<LoginForm> {
         children: [
           TextFormField(
             controller: _usernameController,
-            decoration: const InputDecoration(labelText: 'ユーザー名'),
+            decoration: InputDecoration(
+              labelText: 'ユーザー名',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+              prefixIcon: const Icon(Icons.person),
+            ),
             validator: (value) => value!.isEmpty ? '入力してください' : null,
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _passwordController,
-            decoration: const InputDecoration(labelText: 'パスワード'),
+            decoration: InputDecoration(
+              labelText: 'パスワード',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+              prefixIcon: const Icon(Icons.lock),
+            ),
             obscureText: true,
             validator: (value) => value!.isEmpty ? '入力してください' : null,
           ),
@@ -107,11 +161,15 @@ class _LoginFormState extends State<LoginForm> {
           else
             ElevatedButton(
               onPressed: _submit,
-              child: const Text('ログイン'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(50), // Make button full width
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+              ),
+              child: const Text('登録', style: TextStyle(fontSize: 18)),
             ),
           TextButton(
             onPressed: widget.onSwitch,
-            child: const Text('アカウントをお持ちでないですか？ 新規登録'),
+            child: const Text('既にアカウントをお持ちですか？ ログイン'),
           ),
         ],
       ),
@@ -167,13 +225,21 @@ class _RegisterFormState extends State<RegisterForm> {
         children: [
           TextFormField(
             controller: _usernameController,
-            decoration: const InputDecoration(labelText: 'ユーザー名'),
+            decoration: InputDecoration(
+              labelText: 'ユーザー名',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+              prefixIcon: const Icon(Icons.person),
+            ),
             validator: (value) => value!.isEmpty ? '入力してください' : null,
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _passwordController,
-            decoration: const InputDecoration(labelText: 'パスワード'),
+            decoration: InputDecoration(
+              labelText: 'パスワード',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+              prefixIcon: const Icon(Icons.lock),
+            ),
             obscureText: true,
             validator: (value) => value!.isEmpty ? '入力してください' : null,
           ),
@@ -183,7 +249,11 @@ class _RegisterFormState extends State<RegisterForm> {
           else
             ElevatedButton(
               onPressed: _submit,
-              child: const Text('登録'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(50), // Make button full width
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+              ),
+              child: const Text('登録', style: TextStyle(fontSize: 18)),
             ),
           TextButton(
             onPressed: widget.onSwitch,
@@ -194,3 +264,4 @@ class _RegisterFormState extends State<RegisterForm> {
     );
   }
 }
+
