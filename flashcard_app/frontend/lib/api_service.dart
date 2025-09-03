@@ -4,7 +4,7 @@ import 'models.dart' as model;
 import 'auth_service.dart'; // Import AuthService
 
 class ApiService {
-  final String baseUrl = "http://127.0.0.1:8000";
+  final String baseUrl = "https://my-flashcard-api.onrender.com";
   final AuthService _authService; // Store AuthService instance
 
   ApiService(this._authService); // Constructor to receive AuthService

@@ -13,7 +13,7 @@ class AuthService with ChangeNotifier {
   String? get username => _username;
   bool get isAuthenticated => _token != null;
 
-  final String baseUrl = 'http://127.0.0.1:8000';
+  final String baseUrl = 'https://my-flashcard-api.onrender.com';
 
   AuthService() {
     _loadTokens();
