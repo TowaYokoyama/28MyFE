@@ -161,6 +161,9 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+origins = [
+    "https://28-my-fe-ga2e.vercel.app",
+]
 
 app.add_middleware(
     CORSMiddleware,
@@ -170,9 +173,7 @@ app.add_middleware(
     allow_headers=["*"], 
 )
 
-origins = [
-    "https://28-my-fe-ga2e.vercel.app",
-]
+
 # --- API Endpoints ---
 
 @app.post("/token", response_model=Token)
