@@ -1,7 +1,8 @@
 from datetime import date, timedelta, datetime
 from typing import List, Optional
 from contextlib import asynccontextmanager
-
+from fastapi.middleware.cors import CORSMiddleware
+app = FastAPI()
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
@@ -169,6 +170,9 @@ app.add_middleware(
     allow_headers=["*"], 
 )
 
+origins = [
+    "https://28-my-fe-ga2e.vercel.app",
+]
 # --- API Endpoints ---
 
 @app.post("/token", response_model=Token)
